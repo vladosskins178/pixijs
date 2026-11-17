@@ -90,4 +90,41 @@ describe('Graphics Canvas rendering', () =>
             texture.destroy(true);
         }
     });
+
+    it('should skip a tinted texture with a 0x0 frame', async () =>
+    {
+        const texCanvas = document.createElement('canvas');
+
+        texCanvas.width = 2;
+        texCanvas.height = 2;
+
+        // like the space glyph of a bitmap font
+        const emptyTexture = new Texture({
+            source: new ImageSource({ resource: texCanvas }),
+            frame: new Rectangle(0, 0, 0, 0),
+        });
+        const renderer = new CanvasRenderer();
+
+        await renderer.init({ width: 2, height: 2, backgroundAlpha: 0 });
+
+        const graphics = new Graphics()
+            .texture(emptyTexture, 0xFF0000, 0, 0, 2, 2)
+            .texture(Texture.WHITE, 0x00FF00, 0, 0, 2, 2);
+
+        try
+        {
+            expect(() => renderer.render({ container: graphics })).not.toThrow();
+
+            const context = renderer.canvas.getContext('2d') as CanvasRenderingContext2D;
+
+            // the texture after the empty one is still drawn
+            expect(Array.from(context.getImageData(1, 1, 1, 1).data)).toEqual([0, 255, 0, 255]);
+        }
+        finally
+        {
+            renderer.destroy();
+            graphics.destroy();
+            emptyTexture.destroy(true);
+        }
+    });
 });

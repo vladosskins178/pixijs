@@ -117,6 +117,9 @@ export class CanvasBatchAdaptor implements BatcherAdaptor
             const sw = frame.width * resolution;
             const sh = frame.height * resolution;
 
+            // Nothing to draw, and a tinted or patterned copy of a 0-sized frame would make the canvas API throw
+            if (sw <= 0 || sh <= 0) continue;
+
             const bounds = quad.bounds;
 
             const isRootTarget = renderer.renderTarget.renderTarget.isRoot;

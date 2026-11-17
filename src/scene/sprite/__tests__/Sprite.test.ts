@@ -426,5 +426,39 @@ describe('Sprite', () =>
             sprite.destroy();
             texture.destroy(true);
         });
+
+        it('should skip a tinted sprite with a 0x0 frame in Canvas', async () =>
+        {
+            const texCanvas = document.createElement('canvas');
+
+            texCanvas.width = 2;
+            texCanvas.height = 2;
+
+            const source = new ImageSource({ resource: texCanvas });
+            const emptyTexture = new Texture({ source, frame: new Rectangle(0, 0, 0, 0) });
+            const renderer = new CanvasRenderer();
+
+            await renderer.init({ width: 2, height: 2, backgroundAlpha: 0 });
+
+            const container = new Container();
+            const empty = new Sprite(emptyTexture);
+            const after = new Sprite(Texture.WHITE);
+
+            empty.tint = 0xFF0000;
+            after.tint = 0x00FF00;
+            after.setSize(2, 2);
+            container.addChild(empty, after);
+
+            expect(() => renderer.render({ container })).not.toThrow();
+
+            const context = renderer.canvas.getContext('2d') as CanvasRenderingContext2D;
+
+            // the sprite after the empty one is still drawn
+            expect(Array.from(context.getImageData(1, 1, 1, 1).data)).toEqual([0, 255, 0, 255]);
+
+            renderer.destroy();
+            container.destroy({ children: true });
+            emptyTexture.destroy(true);
+        });
     });
 });

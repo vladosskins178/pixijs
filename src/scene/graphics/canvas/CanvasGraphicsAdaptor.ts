@@ -347,6 +347,12 @@ export class CanvasGraphicsAdaptor implements GraphicsAdaptor
 
                 if (!source) continue;
 
+                const frame = texture.frame;
+
+                // A 0-sized frame (e.g. the space glyph of a bitmap font) draws nothing,
+                // and its tinted copy would be a 0-sized canvas, which drawImage rejects.
+                if (frame.width <= 0 || frame.height <= 0) continue;
+
                 const alpha = data.alpha * groupAlpha;
 
                 if (alpha <= 0) continue;
@@ -362,7 +368,6 @@ export class CanvasGraphicsAdaptor implements GraphicsAdaptor
                     drawSource = canvasUtils.getTintedCanvas({ texture }, tint) as CanvasImageSource;
                 }
 
-                const frame = texture.frame;
                 const resolution = texture.source._resolution ?? texture.source.resolution ?? 1;
 
                 let sx = frame.x * resolution;
